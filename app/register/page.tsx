@@ -1,14 +1,14 @@
 import AcmeLogo from "@/app/ui/acme-logo";
-import LoginForm from "@/app/ui/login-form";
 import { createClient } from "@/app/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
+import RegisterForm from "../ui/RegisterForm";
 
 export const metadata: Metadata = {
-  title: "Login",
+  title: "Register",
 };
 
-export default async function LoginPage() {
+export default async function RegisterPage() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (data.user) {
@@ -22,7 +22,7 @@ export default async function LoginPage() {
             <AcmeLogo />
           </div>
         </div>
-        <LoginForm />
+        <RegisterForm />
       </div>
     </main>
   );

@@ -1,4 +1,3 @@
-import { supabase } from "./supabase/supabaseClient";
 import {
   CustomerField,
   CustomersTableType,
@@ -7,8 +6,10 @@ import {
   Revenue,
 } from "./definitions";
 import { formatCurrency } from "./utils";
+import { createClient } from "./supabase/client";
 
 export async function fetchRevenueData() {
+  const supabase = createClient();
   try {
     const { data, error } = await supabase
       .from("revenue")
@@ -43,6 +44,7 @@ export async function fetchRevenueData() {
 }
 
 export async function fetchLatestInvoices() {
+  const supabase = createClient();
   try {
     const { data, error } = await supabase
       .from("invoices")
@@ -66,18 +68,13 @@ export async function fetchLatestInvoices() {
 }
 
 export async function fetchCardData() {
+  const supabase = createClient();
   try {
     const [invoicesCount, paidInvoices, pendingInvoices, customersCount] =
       await Promise.all([
         supabase.from("invoices").select("*", { count: "exact", head: true }),
-        supabase
-          .from("invoices")
-          .select("amount", { count: "exact" })
-          .eq("status", "paid"),
-        supabase
-          .from("invoices")
-          .select("amount", { count: "exact" })
-          .eq("status", "pending"),
+        supabase.from("invoices").select("amount").eq("status", "paid"),
+        supabase.from("invoices").select("amount").eq("status", "pending"),
         supabase.from("customers").select("*", { count: "exact", head: true }),
       ]);
 
@@ -112,6 +109,7 @@ export async function fetchFilteredInvoices(
   query: string,
   currentPage: number
 ): Promise<InvoicesTable[]> {
+  const supabase = createClient();
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   try {
     const { data, error } = await supabase.rpc("search_invoices", {
@@ -122,29 +120,7 @@ export async function fetchFilteredInvoices(
 
     if (error) throw error;
 
-    interface invoiceType {
-      id: string;
-      amount: number;
-      date: string;
-      status: string;
-      name: string;
-      email: string;
-      image_url: string;
-    }
-
-    const formattedData = data.map((invoice: invoiceType) => ({
-      id: invoice.id,
-      amount: invoice.amount,
-      date: invoice.date,
-      status: invoice.status,
-      customers: {
-        name: invoice.name,
-        email: invoice.email,
-        image_url: invoice.image_url,
-      },
-    }));
-
-    return formattedData;
+    return data;
   } catch (error) {
     console.error("Database Error:", error);
     throw new Error("Failed to fetch invoices.");
@@ -152,6 +128,7 @@ export async function fetchFilteredInvoices(
 }
 
 export async function fetchInvoicesPages(query: string) {
+  const supabase = createClient();
   try {
     const { data, error } = await supabase.rpc("count_invoices", { query });
     if (error) throw error;
@@ -163,6 +140,7 @@ export async function fetchInvoicesPages(query: string) {
 }
 
 export async function fetchCustomers() {
+  const supabase = createClient();
   try {
     const { data, error } = await supabase
       .from("customers")
@@ -180,6 +158,7 @@ export async function fetchCustomers() {
 }
 
 export async function fetchInvoiceById(id: string) {
+  const supabase = createClient();
   try {
     const { data, error } = await supabase
       .from("invoices")
@@ -202,6 +181,7 @@ export async function fetchFilteredCustomers(
   query: string
 ): Promise<CustomersTableType[]> {
   try {
+    const supabase = createClient();
     const { data, error } = await supabase.rpc("search_customers", { query });
     if (error) throw error;
     const customers = data.map((customer: CustomersTableType) => ({

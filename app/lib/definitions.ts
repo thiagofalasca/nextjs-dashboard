@@ -47,7 +47,9 @@ export type InvoicesTable = {
   amount: number;
   date: string;
   status: "pending" | "paid";
-  customers: Customer;
+  name: string;
+  email: string;
+  image_url: string;
 };
 
 export type CustomersTableType = {
